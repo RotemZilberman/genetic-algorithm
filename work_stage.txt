@@ -8,4 +8,4 @@ part 1:
 part 2:
     - finish the tsp class
     - write analyze function
-    - run tests
+    - run tests comper to the brute force solution

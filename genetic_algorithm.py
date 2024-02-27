@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+
 class GeneticAlgorithm(ABC):
     def __init__(self, population, generations, mutation, crossover, selection, tournament, output):
         pass
@@ -56,9 +57,11 @@ class EightQueenPuzzle(GeneticAlgorithm):
 
     def generate_population(self):
         pass
+
     # easy to implement - just generate gosian noise between 1-8 for each queen
     def mutate(self, individual):
         pass
+
     # count the conflicts between the queens
     def fitness_function(self, individual):
         pass
@@ -74,6 +77,7 @@ class TSP(GeneticAlgorithm):
 
     def generate_population(self):
         pass
+
     # using population of (x,y) swap between 2 random points with changece probebility by there difference
     def mutate(self, individual):
         pass
