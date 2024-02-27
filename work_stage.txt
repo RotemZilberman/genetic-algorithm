@@ -1,0 +1,11 @@
+partition for the project:
+
+part 1:
+    - do all the unAbstract funtion from the genetic algorithm class
+    - finish the eightQueens class
+    - run tests
+
+part 2:
+    - finish the tsp class
+    - write analyze function
+    - run tests
