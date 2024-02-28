@@ -1,8 +1,9 @@
+import random
 from abc import ABC, abstractmethod
 
 
 class GeneticAlgorithm(ABC):
-    def __init__(self, population, generations, mutation, crossover, selection, tournament, output):
+    def __init__(self, population, generations, patience, mutation_rate, crossover_rate, elite_size):
         pass
 
     @abstractmethod
@@ -72,23 +73,41 @@ class EightQueenPuzzle(GeneticAlgorithm):
 
 
 class TSP(GeneticAlgorithm):
-    def __init__(self, population, generations, mutation, crossover, selection, tournament, fitness, output):
-        super().__init__(population, generations, mutation, crossover, selection, tournament, fitness, output)
+    def __init__(self, population, generations, patience, mutation_rate, crossover_rate, elite_size, cities):
+        super().__init__(population, generations, patience, mutation_rate, crossover_rate, elite_size)
+        self.start_city = cities[1]
+        self.cities = cities
+        del cities[1]
 
     def generate_population(self):
-        pass
+        pop_size = self.population
+        population = []
+        for _ in range(pop_size):
+            population.append(random.sample(self.cities.keys(), len(self.cities)))
+        return population
 
-    # using population of (x,y) swap between 2 random points with changece probebility by there difference
     def mutate(self, individual):
-        pass
+        if random.random() < self.mutation_rate:
+            index1, index2 = random.sample(range(len(individual)), 2)
+            individual[index1], individual[index2] = individual[index2], individual[index1]
 
-    # calculate the distance between the cities
     def fitness_function(self, individual):
-        pass
+        current_distance = 0
+        current_city = self.start_city
+        for city_index in individual:
+            city = self.cities[city_index]
+            current_distance += current_city.distance(city)
+            current_city = city
+        current_distance += current_city.distance(self.start_city)
+        return 1 / current_distance
 
-    # first have and then go by the sec parent
     def crossover(self, parent1, parent2):
-        pass
+        single_point = self.population // 2
+        child = parent1[:single_point]
+        for city in parent2:
+            if city not in child:
+                child.append(city)
+        return child
 
     def chromosome_to_solution(self, chromosome):
         return chromosome
