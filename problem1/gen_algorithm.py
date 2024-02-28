@@ -108,7 +108,11 @@ class GeneticAlgorithm(ABC):
 
             population = self.evolve(pop_eval)
 
-        return best_list, avg_eval_list, best_list[-1]
+        def key(element):
+            return self.fitness_function(element)
+
+        population.sort(key=key)
+        return best_list, avg_eval_list, population[-1]
 
 
 class EightQueenPuzzle(GeneticAlgorithm):
