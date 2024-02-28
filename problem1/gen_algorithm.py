@@ -83,9 +83,10 @@ class GeneticAlgorithm(ABC):
             first, second = self.sample_chromos(pop_eval)
             seed = random.uniform(0, 1)
             if seed <= self.crossover_rate:
-                child = self.crossover(first, second)
-                population.append(child)
-                count += 1
+                child1, child2 = self.crossover(first, second)
+                population.append(child1)
+                population.append(child2)
+                count += 2
 
         return population
 
@@ -136,17 +137,22 @@ class EightQueenPuzzle(GeneticAlgorithm):
 
     # checking between multiple single points and uniform crossover
     def crossover(self, parent1, parent2):
-        child = []
+        child1 = []
+        child2 = []
         if self.cross_mode == "single":
             point = random.randint(0, self.board_length-1)
-            child = parent1[:point+1] + parent2[point+1:]
+            child1 = parent1[:point+1] + parent2[point+1:]
+            child2 = parent2[:point+1] + parent1[point+1:]
         elif self.cross_mode == "uniform":
             for i in range(self.board_length):
                 seed = random.uniform(0, 1)
-                index = parent1[i] if seed <= 0.5 else parent2[i]
-                child.append(index)
-        child = self.mutate(child)
-        return child
+                index1 = parent1[i] if seed <= 0.5 else parent2[i]
+                index2 = parent2[i] if seed <= 0.5 else parent1[i]
+                child1.append(index1)
+                child2.append(index2)
+        child1 = self.mutate(child1)
+        child2 = self.mutate(child2)
+        return child1, child2
 
     # count the conflicts between the queens
     def fitness_function(self, individual):
