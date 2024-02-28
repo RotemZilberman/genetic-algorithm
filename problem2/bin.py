@@ -1,11 +1,10 @@
 import argparse
 import math
-from itertools import permutations
 import time
 
-from genetic_algorithm.problem2.analyze_data import result_to_plot
-from genetic_algorithm.problem2.genetic_algorithm import TSP
+from analyze_data import result_to_plot
 from city import City
+from gen_algorithm import TSP
 
 Population = 100
 Generations = 100
@@ -36,25 +35,33 @@ def extract_city_data(data_dir):
     return cities
 
 
-def compute_distance(start_city, path, cities):
+def compute_distance(path, cities):
     distance = 0
-    current_city = start_city
+    current_city = cities[path[0]]
     for city_index in path:
         city = cities[city_index]
         distance += current_city.distance(city)
         current_city = city
-    distance += current_city.distance(start_city)
+    distance += current_city.distance(cities[1])
     return distance
 
 
 def greedy_solution(cities):
     start_city = cities[1]
-    current_city = start_city
     unvisited = list(cities.keys())
     unvisited.remove(1)
     path = [1]
-
-
+    while unvisited:
+        closest_dis = math.inf
+        current_city = None
+        for city_index in unvisited:
+            dist = cities[path[-1]].distance(cities[city_index])
+            if dist < closest_dis:
+                current_city = city_index
+                closest_dis = dist
+        path.append(current_city)
+        unvisited.remove(current_city)
+    return path, compute_distance(path, cities)
 
 
 def main():
@@ -65,7 +72,7 @@ def main():
     cities = extract_city_data(args.data_dir)
     start_time = time.time()
 
-    if args.method == "GA":   # genetic algorithm
+    if args.method == "GA":  # genetic algorithm
         gen_alg = TSP(population, generations, patience, mutation_rate, crossover_rate, elite_size, cities)
         best_eval_list, avg_eval_list, best_result = gen_alg.run()
 
@@ -76,8 +83,8 @@ def main():
                 f.write(f'\n{city_index}')
         print(f'Best result: {best_result} with distance of {compute_distance(cities[1], best_result, cities)}')
 
-    else:   # brute force
-        min_path, min_distance = bf_solution(cities)
+    else:  # greedy solution
+        min_path, min_distance = greedy_solution(cities)
         print(f'Best result: {min_path} with distance of {min_distance}')
 
     print(f'Execution time: {time.time() - start_time}')
