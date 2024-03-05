@@ -17,10 +17,9 @@ def calculate_x(m):
 
 
 class GeneticAlgorithm(ABC):
-    def __init__(self, population, generations, patience, mutation_rate, crossover_rate, elite_size):
+    def __init__(self, population, generations, mutation_rate, crossover_rate, elite_size):
         self.population = population
         self.generations = generations
-        self.patience = patience
         self.mutation_rate = mutation_rate
         self.crossover_rate = crossover_rate
         self.elite_size = elite_size
@@ -34,6 +33,8 @@ class GeneticAlgorithm(ABC):
         pass
 
     def get_elite(self, pop_eval):
+        if not len(pop_eval) > self.elite_size:
+            return [chromo for (chromo, evaluation) in pop_eval]
         top = pop_eval[-1 * self.elite_size:]
         return [chromo for (chromo, evaluation) in top]
 
@@ -57,19 +58,12 @@ class GeneticAlgorithm(ABC):
         avg_eval /= self.population
         return pop_eval, avg_eval, best_eval
 
-    # def sample_chromos(self, pop_eval):
-    #     rand1 = random.randint(0, self.population-1)
-    #     rand2 = random.randint(0, self.population-1)
-    #     first = pop_eval[rand1][0]
-    #     second = pop_eval[rand2][0]
-    #     return first, second
-
     def sample_chromos(self, pop_eval):
-        combinations = (self.population * (self.population-1))/2
-        rand1 = random.randint(0, combinations)
-        rand2 = random.randint(0, combinations)
-        first = pop_eval[calculate_x(rand1)][0]
-        second = pop_eval[calculate_x(rand2)][0]
+        combinations = (len(pop_eval) * (len(pop_eval)-1))/2
+        rand1 = calculate_x(random.randint(0, combinations))
+        rand2 = calculate_x(random.randint(0, combinations))
+        first = pop_eval[rand1][0]
+        second = pop_eval[rand2][0]
         return first, second
 
     @abstractmethod
@@ -80,18 +74,15 @@ class GeneticAlgorithm(ABC):
         population = self.get_elite(pop_eval)
         count = 0
         while count < (self.population - self.elite_size):
-            first, second = self.sample_chromos(pop_eval)
+            first, second = self.sample_chromos(pop_eval[self.elite_size:])
             seed = random.uniform(0, 1)
             if seed <= self.crossover_rate:
-                child1, child2 = self.crossover(first, second)
-                population.append(child1)
-                population.append(child2)
-                count += 2
+                first, second = self.crossover(first, second)
+            population.append(first)
+            population.append(second)
+            count += 2
 
-        return population
-
-    def chromosome_to_solution(self, chromosome):
-        return chromosome
+        return population if len(population) == len(pop_eval) else population[1:]
 
     def run(self):
         # Create initial population
@@ -103,6 +94,7 @@ class GeneticAlgorithm(ABC):
             print(f'Generation {i + 1}...')
 
             pop_eval, avg_eval, best_eval = self.evaluate_all(population)
+
             best_list.append(best_eval)
             avg_eval_list.append(avg_eval)
 
@@ -112,12 +104,23 @@ class GeneticAlgorithm(ABC):
             return self.fitness_function(element)
 
         population.sort(key=key)
+
+        count = 0
+        fit_list = []
+        for chromo in population:
+            if chromo not in fit_list:
+                if self.fitness_function(chromo) == 56:
+                    count += 1
+                    fit_list.append(chromo)
+        print("optimal count: ", len(fit_list))
+        print("optimal chromosomes: ", fit_list)
+
         return best_list, avg_eval_list, population[-1]
 
 
 class EightQueenPuzzle(GeneticAlgorithm):
-    def __init__(self, population, generations, patience, mutation_rate, crossover_rate, elite_size, cross_mode="single"):
-        super().__init__(population, generations, patience, mutation_rate, crossover_rate, elite_size)
+    def __init__(self, population, generations, mutation_rate, crossover_rate, elite_size, cross_mode="single"):
+        super().__init__(population, generations, mutation_rate, crossover_rate, elite_size)
         self.cross_mode = cross_mode
         self.board_length = 8
 
@@ -125,14 +128,12 @@ class EightQueenPuzzle(GeneticAlgorithm):
         population = []
         for i in range(self.population):
             rand = random.choices(range(0, self.board_length), k=self.board_length)
-            while not self.fitness_function(rand) < 20:
-                rand = random.choices(range(0, self.board_length), k=self.board_length)
             population.append(rand)
         return population
 
     # easy to implement - just generate gosian noise between 1-8 for each queen
     def mutate(self, individual):
-        seed = random_number = random.uniform(0, 1)
+        seed = random.uniform(0, 1)
         if seed < self.mutation_rate:
             column = random.randint(0, self.board_length-1)
             index = random.randint(0, self.board_length-1)
@@ -171,3 +172,14 @@ class EightQueenPuzzle(GeneticAlgorithm):
         maximum_collisions = (self.board_length * (self.board_length-1))
         return maximum_collisions - hits
 
+    def evaluate_all(self, population):
+        pop_eval, avg_eval, best_eval = super().evaluate_all(population)
+        unique_pop = list({(tuple(chromo), fitness) for chromo, fitness in pop_eval})
+        unique_pop = [(list(tup), fitness) for tup, fitness in unique_pop]
+
+        def key(element):
+            return element[1]
+
+        unique_pop.sort(key=key)
+
+        return unique_pop, avg_eval, best_eval

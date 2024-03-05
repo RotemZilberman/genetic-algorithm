@@ -1,37 +1,38 @@
 import argparse
+import time
+
 from gen_algorithm import EightQueenPuzzle
 from analyze_data import result_to_plot
 
 BoardSize = 8
-Population = 100
-Generations = 1000
-Patience = 10
-MutationRate = 0.1
-CrossoverRate = 0.1
-EliteSize = 2
+Population = 1000
+Generations = 500
+MutationRate = 0.01
+CrossoverRate = 0.7
+EliteSize = 18
+CrossMode = "single"
 
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--method", required=False, type=str, default="bf")
+    parser.add_argument("--method", required=False, type=str, default="GA")
     args = parser.parse_args()
     return args
 
 
 def main():
     args = get_args()
-    population, generations, patience, mutation_rate, crossover_rate, elite_size = (
-        Population, Generations, Patience, MutationRate, CrossoverRate, EliteSize)
-    gen_alg = EightQueenPuzzle(population, generations, patience, mutation_rate, crossover_rate, elite_size)
+    population, generations, mutation_rate, crossover_rate, elite_size, cross_mode = (
+        Population, Generations, MutationRate, CrossoverRate, EliteSize, CrossMode)
+    gen_alg = EightQueenPuzzle(population, generations, mutation_rate, crossover_rate, elite_size, cross_mode)
     if args.method == "GA":
+        start = time.time()
         best_list, avg_eval_list, best_chromo = gen_alg.run()
-        print(best_chromo)
-        print(f'{best_list[0]} to {best_list[-1]}')
-        if best_list[-1] == BoardSize * (BoardSize - 1):
-            result_to_plot(best_list, avg_eval_list, "", "first")
+        print("time: ", (time.time() - start))
 
     else:  # brute-force solution
-        found = False
+        found = 0
+        start = time.time()
         for i in range(8):
             for j in range(8):
                 for k in range(8):
@@ -43,10 +44,10 @@ def main():
                                         solution = [i, j, k, l, m, n, o, p]
 
                                         if gen_alg.fitness_function(solution) == BoardSize * (BoardSize - 1):
-                                            print(solution)
-                                            found = True
-                                            return
-        if not found:
+                                            print(solution, time.time() - start)
+                                            found += 1
+
+        if found == 0:
             print("Couldn't find a solution")
 
 
