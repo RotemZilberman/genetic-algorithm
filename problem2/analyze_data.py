@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 def plot_fitness(generation, generation_info, title):
     fig, axis = plt.subplots()
     # iterate over the measures and plot them
-    axis.plot(generation, generation_info["best_score"], label='best score', marker='o', color='blue')
-    axis.plot(generation, generation_info["avg_score"], label='average score', marker='o', color='red')
+    axis.plot(generation, generation_info["best_score"], label='best score', marker='o', color='blue', markersize=3)
+    axis.plot(generation, generation_info["avg_score"], label='average score', marker='o', color='red', markersize=3)
     axis.set_xlabel('Generations')
     axis.set_ylabel('fitness score')
     axis.set_title(title)
